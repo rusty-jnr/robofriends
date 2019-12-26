@@ -2,37 +2,36 @@ import React, { useState, useEffect } from 'react';
 import CardList from '../components/CardList';
 import Scroll from '../components/Scroll';
 import SearchBox from '../components/SearchBox';
+import { useSelector, useDispatch } from 'react-redux';
+import { setSearchField, requestRobots } from '../action'
 import '../style/App.css';
 
-const App = () =>{
+const App = ({ store }) =>{
 
-    const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState([]);
-    const [robot, setRobot] = useState([]);
+
+    const text = useSelector(state => state.searchRobots.searchField)
+
+    const robosUsers = useSelector(state => state.getRobotsReducer.users)
+    
+    const dispatch = useDispatch();
 
     const onSearchChange = (e) => {
-        setSearchTerm(e.target.value);
+        dispatch(setSearchField(e.target.value))
     };
 
     useEffect(() =>  {
-        fetch('https://jsonplaceholder.typicode.com/users')
-            .then(response => response.json())
-            .then(users => {
-                setRobot(users)
-            })
-            .catch((error) => {
-            console.error(error);
-        });
-    }, [])
+        dispatch(requestRobots());
+    }, [dispatch])
 
     useEffect(() => {
-        let filteredRobots = robot.filter(robots => {
+        let filteredRobots = robosUsers.filter(robots => {
             return(
-                robots.name.toLowerCase().includes(searchTerm.toLowerCase())
+                robots.name.toLowerCase().includes(text.toLowerCase())
             );
         });
         setSearchResults(filteredRobots);
-    }, [searchTerm,robot])
+    }, [text,robosUsers])
 
     const newRobot = searchResults;
 
@@ -43,7 +42,7 @@ const App = () =>{
                 <SearchBox SearchChange={ onSearchChange }/>
             </Scroll>
                 {
-                    searchTerm === "" ? <CardList robots={ robot }/> : <CardList robots={ newRobot }/>
+                    text === "" ? <CardList robots={ robosUsers }/> : <CardList robots={ newRobot }/>
                 }
         </div>
     );
